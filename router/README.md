@@ -45,3 +45,12 @@ python3 ./upgradeEnvironments.py -r local --old-version bff-16494 --new-version 
 ```
 python3 ./upgradeEnvironments.py -r local --fqen "fchu.dev:demo.apptio.net_localhost-9050" --new-version bff-20000 -a BFF
 ```
+
+# Delete items
+```
+python3 ./deleteItems.py -i ./logs/bad_env_local.json -l environment --router local
+```
+
+```
+python3 ./deleteItems.py -i ./logs/bad_env_local.json -l envVersion environment customer version --router local
+```

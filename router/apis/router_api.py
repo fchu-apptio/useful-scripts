@@ -51,12 +51,14 @@ class RouterApi:
   def get_version_by_build_and_app(self, build, appId):
     return self.http.get(path = 'versions/buildNumber/{}?applicationId={}'.format(build, appId))
 
-  # Version
   def get_versions_by_app(self, appId):
     return self.http.get(path = 'versions?applicationId={}'.format(appId))
 
   def post_version(self, data):
     return self.http.post(path = 'versions', data = data)
+
+  def delete_version(self, verId):
+    return self.http.delete(path = 'versions/{}'.format(verId))
 
   # Customer
   def get_customer_by_name(self, name):
@@ -64,6 +66,9 @@ class RouterApi:
 
   def post_customer(self, data):
     return self.http.post(path = 'customers', data = data)
+
+  def delete_customer(self, custId):
+    return self.http.delete(path = 'customers/{}'.format(custId))
   
   # Environment
   def get_environment_by_fqen(self, fqen):
@@ -77,6 +82,9 @@ class RouterApi:
 
   def post_environment(self, data):
     return self.http.post(path = 'environments', data = data)
+
+  def delete_environment(self, envId):
+    return self.http.delete(path = 'environments/{}'.format(envId))
 
   # Environment Versions
   def get_envVersions_by_env_and_app(self, envId, appId):
@@ -100,6 +108,9 @@ class RouterApi:
 
   def put_envVersion(self, data):
     return self.http.put(path = 'envVersions', data = data)
+
+  def delete_envVersion(self, envVerId):
+    return self.http.delete(path = 'envVersions/{}'.format(envVerId))
 
   # Environment Versions Resource
   def get_envVersion_resources(self, envVerId):
