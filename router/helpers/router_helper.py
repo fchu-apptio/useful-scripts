@@ -35,13 +35,14 @@ class EnvironmentsHelper:
       'envId': e.get('id'),
       'fqen': e.get('fullyQualifiedEnvironmentName'),
       'customerName': e.get('customer').get('name'),
-      'customerId': e.get('customerId')
+      'customerId': e.get('customerId'),
+      'vanityDomain': e.get('vanityDomain')
       }
       ev = envVersions.get( "{}-{}".format( e.get('id'), appId ) )
       if ev:
         env['envVerId'] = ev.get('id')
         env['versionBuildNumber'] = ev.get('versionBuildNumber')
-        ver = versions.get( ev.get('buildNumber') )
+        ver = versions.get( ev.get('versionBuildNumber') )
         if ver:
           env['verId'] = ev.get('id')
           env['elbAddress'] = ver.get('elbAddress')
