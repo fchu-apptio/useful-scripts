@@ -26,7 +26,7 @@ def search_environments( params ):
 
   environments = EnvironmentsHelper.appendVersionResource(environments, api)
   if params.custom=='bad':
-    environments = EnvironmentsHelper.filterBadEnvironments( environments, api )
+    environments = EnvironmentsHelper.filterBadEnvironments( environments, api, params.ignoreList )
   
   return list(environments)
 
@@ -73,6 +73,7 @@ parser.add_argument('--function', '-f', dest='function', type=FunctionArg(),
   help='(Required) Function to run. One of [{}]'.format( functions ), required=True )
 parser.add_argument('--name', '-n', dest='name', type=str, required=False)
 parser.add_argument('--custom', '-c', dest='custom', type=str, required=False)
+parser.add_argument('--ignore', '-i', nargs='+', dest='ignoreList', required=False)
 parser.add_argument('--output', '-o', dest='output', type=str, required=False, help="Output file for results")
 parser.add_argument('--version', '-v', dest='version', type=str, required=False, help="A build version for the application")
 parser.add_argument('--app-name', '-a', dest='app', type=str, default='Studio BFF', required=False, help='Router application to use')

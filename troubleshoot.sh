@@ -43,8 +43,37 @@ fi
 
 # Validate that mysql is running
 echo "[INFO] checking docker processes to find mysql"
-MYSQL_CONT=$(docker ps --quiet --filter=name="mysql" | head -n 1);
-echo "[INFO] USING_MYSQL_CONT: ${MYSQL_CONT}"
+ROUTER_MYSQL_CONT=$(docker ps --quiet --filter=name="router_mysql_1" | head -n 1);
+echo "[INFO] USING ROUTER_MYSQL_CONT: ${ROUTER_MYSQL_CONT}"
+
+echo "[INFO] checking docker processes to find mysql"
+MYSQL_CONT=$(docker ps --quiet --filter=name="mysql_mysql_1" | head -n 1);
+echo "[INFO] USING MYSQL_CONT: ${MYSQL_CONT}"
+
+if [ ${ROUTER_MYSQL_CONT} ];
+then
+    echo "[INFO] Mysql is running"
+    ROUTER_MYSQL_CMD="docker exec -it ${ROUTER_MYSQL_CONT} mysql"
+else
+    echo "[WARN] mysql_mysql_1 is not running in docker image, its possible that you are running it locally"
+    echo "[RECOMMENDATION] If you are running mysql locally, its recommended to use the dockerized mysql"
+    echo "[RECOMMENDATION] Start mysql in docker (docker start mysql_mysql_1)"
+    echo "[RECOMMENDATION] https://confluence.apptio.com/display/rnd/Setting+up+Router"
+    WARNING_COUNT=$((WARNING_COUNT+1))
+
+    # Check if mysql is running locally if so use that as the command
+    mysql --version
+    if [ $? -ne "0" ]; 
+    then
+        echo "[ERROR] missing mysql command, exiting application. You must either run mysql locally or in docker"
+        exit 1
+    else 
+        echo "[INFO] found mysql, using local mysql"
+        echo "[WARN] sometimes local mysql -e commands will run slowly"
+        ROUTER_MYSQL_CMD="mysql"
+    fi
+fi
+
 if [ ${MYSQL_CONT} ];
 then
     echo "[INFO] Mysql is running"
@@ -137,7 +166,7 @@ JOIN locator.EnvironmentVersion enver ON app.Id = enver.ApplicationId
 JOIN locator.EnvironmentVersionResource enveres ON enveres.EnvironmentVersionId = enver.Id
 JOIN locator.Environment env ON env.Id = enver.EnvironmentId"
 echo "${PRINT_ALL_DB}"
-${MYSQL_CMD} -u biit -pbiit --protocol=tcp -e "${PRINT_ALL_DB}"
+${ROUTER_MYSQL_CMD} -u biit -pbiit --protocol=tcp -e "${PRINT_ALL_DB}"
 if [ "$MYSQL_CMD" = "mysql" ]
 then
     echo "[WARN] using local mysql command, sometimes this can run slow"
@@ -178,7 +207,7 @@ do
             ERROR_COUNT=$((ERROR_COUNT+1))
         fi
     fi
-done < <( $MYSQL_CMD -u biit -pbiit --protocol=tcp -N -s -e "${PRINT_BFF_ADDRESS}" | grep -v "Warning" | tr -d '\r'  )
+done < <( $ROUTER_MYSQL_CMD -u biit -pbiit --protocol=tcp -N -s -e "${PRINT_BFF_ADDRESS}" | grep -v "Warning" | tr -d '\r'  )
 if [ $CONTAINS_LINES -ne 1 ]
 then
     echo "[ERROR] Did not find any rows in locator.Version"
@@ -215,7 +244,7 @@ do
             ERROR_COUNT=$((ERROR_COUNT+1))
         fi
     fi
-done < <( $MYSQL_CMD -u biit -pbiit --protocol=tcp -N -s -e "${PRINT_BFF_ADDRESS}" | grep -v "Warning" | tr -d '\r'  )
+done < <( $ROUTER_MYSQL_CMD -u biit -pbiit --protocol=tcp -N -s -e "${PRINT_BFF_ADDRESS}" | grep -v "Warning" | tr -d '\r'  )
 if [ $CONTAINS_LINES -ne 1 ]
 then
     echo "[ERROR] Did not find any rows in locator.EnvironmentVersionResource"

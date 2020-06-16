@@ -20,7 +20,7 @@ python3 ./query_router.py -f search_environments --router us-dev --version "12" 
 
 Search for bad environments and print to output file
 ```
-python3 ./query_router.py -f search_environments -r us-dev -c bad -o logs/bad_env_us-dev.json
+python3 ./query_router.py -f search_environments -r us-prod -c bad -i "csbox-us-east-r12-internal.apptio.com" -o logs/bad_env_us-prod.json
 ```
 
 Search for versions

@@ -63,7 +63,7 @@ class EnvironmentsHelper:
     return output
 
   @staticmethod
-  def filterBadEnvironments(filteredEnvironments, api):
+  def filterBadEnvironments(filteredEnvironments, api, ignore=[] ):
     output = []
     for e in filteredEnvironments:
       env = e
@@ -71,7 +71,7 @@ class EnvironmentsHelper:
         env['reason_failed'] = 'Missing environment version information'
       elif not env.get('biitAddress'):
         env['reason_failed'] = 'Missing biit resource'
-      elif not BiitApi.healthy(env.get('biitAddress')):
+      elif env.get('biitAddress') not in ignore and not BiitApi.healthy(env.get('biitAddress')):
         env['reason_failed'] = 'Biit is down: {}'.format(env.get('biitAddress'))
       else:
         continue
