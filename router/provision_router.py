@@ -10,7 +10,8 @@ parser.add_argument('--router', '-r', dest='router', type=RouterArg(),
 parser.add_argument('--env', '-e', dest='env', type=str, required=True, help='Environment name to provision')
 parser.add_argument('--customer', '-c', dest='customer', type=str, required=True, help='Customer address to provision')
 parser.add_argument('--bff-version', '-v', dest='version', type=str, required=True, help='Tag of the bff version to provision to')
-parser.add_argument('--biit-address', '-b', dest='address', type=str, required=True, help='Url of the biit server')
+parser.add_argument('--vanity', '-d', dest='vanity', type=str, required=False, help='vanity domain (just the name without the .apptio.com)')
+parser.add_argument('--biit-address', '-b', dest='address', type=str, required=False, help='Url of the biit server')
 parser.add_argument('--app-name', '-a', dest='app', type=str, default='Studio Bff', help='Router application to provision to')
 args = parser.parse_args()
 print("Running with args:")
@@ -39,15 +40,27 @@ if not customer or 'id' not in customer:
 fqen = "{}:{}".format(args.customer, args.env)
 environment = api.get_environment_by_fqen(fqen)
 if not environment or 'id' not in environment:
-  environment = api.post_environment({
+  body = {
     "fullyQualifiedEnvironmentName" : fqen, 
     "databaseSchema" : str(uuid.uuid1()), 
     "customerId" : customer.get('id'), 
     "environmentState" : "Running", 
     "upgradeGroup" : "Internal"
-  })
+  }
+  if args.vanity:
+    body['vanityDomain'] = args.vanity
+  environment = api.post_environment(body)
   if not environment or 'id' not in environment:
     sys.exit("Environment could not be created")
+else:
+  body = {
+    "id" : environment.get('id'),
+    "fullyQualifiedEnvironmentName" : fqen
+  }
+  if args.vanity:
+    body['vanityDomain'] = args.vanity
+  environment = api.put_environment(body)
+
 
 # Get the environment version, create if not exists
 envVersion = api.get_envVersions_by_env_and_app(environment.get('id'), application.get('id'))
@@ -66,7 +79,8 @@ else:
   })
 
 # Update the environment version resources
-api.put_envVersion_resources( envVersion.get('id'), 'biit', args.address )
+if args.address:
+  api.put_envVersion_resources( envVersion.get('id'), 'biit', args.address )
 
 # Clear cache
 api.clearCache()

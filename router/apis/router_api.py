@@ -16,7 +16,7 @@ class HttpRouter:
 
   def get(self, path, params = {}):
     url = '{}/sf/{}'.format(self.url, path)
-    return HttpRequest.call( request = lambda: requests.get(url, params=params, timeout=3).json(),
+    return HttpRequest.call( request = lambda: requests.get(url, params=params, timeout=10).json(),
       log_action = "GET", log_data = params, log_url = url, log=self.log )
 
   def post(self, path, data):
@@ -82,6 +82,9 @@ class RouterApi:
 
   def post_environment(self, data):
     return self.http.post(path = 'environments', data = data)
+
+  def put_environment(self, data):
+    return self.http.put(path = 'environments', data = data)
 
   def delete_environment(self, envId):
     return self.http.delete(path = 'environments/{}'.format(envId))

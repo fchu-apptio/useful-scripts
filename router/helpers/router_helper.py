@@ -44,7 +44,7 @@ class EnvironmentsHelper:
         env['versionBuildNumber'] = ev.get('versionBuildNumber')
         ver = versions.get( ev.get('versionBuildNumber') )
         if ver:
-          env['verId'] = ev.get('id')
+          env['verId'] = ver.get('id')
           env['elbAddress'] = ver.get('elbAddress')
 
       output.append(env)
@@ -63,7 +63,9 @@ class EnvironmentsHelper:
     return output
 
   @staticmethod
-  def filterBadEnvironments(filteredEnvironments, api, ignore=[] ):
+  def filterBadEnvironments(filteredEnvironments, api, ignore ):
+    
+
     output = []
     for e in filteredEnvironments:
       env = e
@@ -71,7 +73,7 @@ class EnvironmentsHelper:
         env['reason_failed'] = 'Missing environment version information'
       elif not env.get('biitAddress'):
         env['reason_failed'] = 'Missing biit resource'
-      elif env.get('biitAddress') not in ignore and not BiitApi.healthy(env.get('biitAddress')):
+      elif env.get('biitAddress') not in ( ignore or [] ) and not BiitApi.healthy(env.get('biitAddress')):
         env['reason_failed'] = 'Biit is down: {}'.format(env.get('biitAddress'))
       else:
         continue
@@ -122,12 +124,18 @@ class VersionsHelper:
     output = []
     for v in filteredVersions:
       ver = v
+      reasons = []
+
       if not ver.get('environments'): 
-        ver['reason_failed'] = 'No environments configured for this version'
-      elif not BffApi.healthy(ver.get('elbAddress')):
-        ver['reason_failed'] = 'Bff is down: {}'.format(ver.get('elbAddress'))
-      else:
+        reasons.append('No environments configured for this version')
+    
+      if not BffApi.healthy(ver.get('elbAddress')):
+        reasons.append('Bff is down: {}'.format(ver.get('elbAddress')))
+      
+      if not reasons:
         continue
+      
+      ver['reason_failed'] = ', '.join(reasons)
       output.append(ver)
     return output
 
