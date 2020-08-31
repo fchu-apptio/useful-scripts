@@ -55,23 +55,8 @@ then
     echo "[INFO] Mysql is running"
     ROUTER_MYSQL_CMD="docker exec -it ${ROUTER_MYSQL_CONT} mysql"
 else
-    echo "[WARN] mysql_mysql_1 is not running in docker image, its possible that you are running it locally"
-    echo "[RECOMMENDATION] If you are running mysql locally, its recommended to use the dockerized mysql"
-    echo "[RECOMMENDATION] Start mysql in docker (docker start mysql_mysql_1)"
-    echo "[RECOMMENDATION] https://confluence.apptio.com/display/rnd/Setting+up+Router"
-    WARNING_COUNT=$((WARNING_COUNT+1))
-
-    # Check if mysql is running locally if so use that as the command
-    mysql --version
-    if [ $? -ne "0" ]; 
-    then
-        echo "[ERROR] missing mysql command, exiting application. You must either run mysql locally or in docker"
-        exit 1
-    else 
-        echo "[INFO] found mysql, using local mysql"
-        echo "[WARN] sometimes local mysql -e commands will run slowly"
-        ROUTER_MYSQL_CMD="mysql"
-    fi
+    echo "[ERROR] missing router_mysql, exiting application. You must either run mysql locally or in docker"
+    exit 1
 fi
 
 if [ ${MYSQL_CONT} ];
@@ -79,23 +64,8 @@ then
     echo "[INFO] Mysql is running"
     MYSQL_CMD="docker exec -it ${MYSQL_CONT} mysql"
 else
-    echo "[WARN] mysql_mysql_1 is not running in docker image, its possible that you are running it locally"
-    echo "[RECOMMENDATION] If you are running mysql locally, its recommended to use the dockerized mysql"
-    echo "[RECOMMENDATION] Start mysql in docker (docker start mysql_mysql_1)"
-    echo "[RECOMMENDATION] https://confluence.apptio.com/display/rnd/Setting+up+Router"
-    WARNING_COUNT=$((WARNING_COUNT+1))
-
-    # Check if mysql is running locally if so use that as the command
-    mysql --version
-    if [ $? -ne "0" ]; 
-    then
-        echo "[ERROR] missing mysql command, exiting application. You must either run mysql locally or in docker"
-        exit 1
-    else 
-        echo "[INFO] found mysql, using local mysql"
-        echo "[WARN] sometimes local mysql -e commands will run slowly"
-        MYSQL_CMD="mysql"
-    fi
+    echo "[ERROR] missing mysql_mysql, exiting application. You must either run mysql locally or in docker"
+    exit 1
 fi
 
 # Validate that redis is running
@@ -186,6 +156,12 @@ CONTAINS_LINES=0
 while read -r line;
 do
     CONTAINS_LINES=1
+
+    if [[ $line = "localhost:9002" || $line = "host.docker.internal:9002" || $line = "shell-studio.apps.dapt.to"  ]];
+    then
+        continue
+    fi
+
     echo $line | cat -v
     if ( [ $USING_LINUX ] || [ -z $ROUTER_CONT ] );
     then

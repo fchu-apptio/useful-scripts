@@ -1,127 +1,95 @@
-from apis.http_api import HttpRequest
-import pprint
-import requests
+from apis.http_api import HttpApi
 import urllib.parse
+import json
 
-class HttpRouter:
-  postHeaders = {
-    'Accept':'application/json',
-    'Content-Type':'application/json',
-    'cache-control':'no-cache'
-  }
 
-  def __init__(self, url, log=True):
-    self.url = url
-    self.log = log
+class RouterApi(HttpApi):
 
-  def get(self, path, params = {}):
-    url = '{}/sf/{}'.format(self.url, path)
-    return HttpRequest.call( request = lambda: requests.get(url, params=params, timeout=10).json(),
-      log_action = "GET", log_data = params, log_url = url, log=self.log )
+    def __init__(self, address, session, log=True):
+        super().__init__(session, log)
+        self.address = address
 
-  def post(self, path, data):
-    url = '{}/sf/{}'.format(self.url, path)
-    return HttpRequest.call( request = lambda: requests.post(url, json = data, headers = self.postHeaders, timeout = 3).json(),
-      log_action = "POST", log_data = data, log_url = url, log=self.log )
+    # Application
+    def get_application_by_name(self, name):
+        return self.get(url='{0}/sf/applications/name/{1}/'.format(self.address, urllib.parse.quote(name))).json()
 
-  def put(self, path, data):
-    url = '{}/sf/{}'.format(self.url, path)
-    return HttpRequest.call( request = lambda:  requests.put(url, json = data, headers = self.postHeaders, timeout = 3).json(),
-      log_action = "PUT", log_data = data, log_url = url, log=self.log )
+    # Version
+    def get_version_by_build_and_app(self, build, appId):
+        return self.get(url='{0}/sf/versions/buildNumber/{1}?applicationId={2}'.format(self.address, build, appId)).json()
 
-  def put_str(self, path, string):
-    url = '{}/sf/{}'.format(self.url, path)
-    return HttpRequest.call( request = lambda:  requests.put(url, data = string, headers = self.postHeaders, timeout = 3),
-      log_action = "PUT_STR", log_data = string, log_url = url, log=self.log )
+    def get_versions_by_app(self, appId):
+        return self.get(url='{0}/sf/versions?applicationId={1}'.format(self.address, appId)).json()
 
-  def delete(self, path):
-    url = '{}/sf/{}'.format(self.url, path)
-    return HttpRequest.call( request = lambda: requests.delete(url, timeout = 3),
-    log_action = "DELETE", log_url = url, log=self.log )
+    def post_version(self, data):
+        return self.post(url='{0}/sf/versions'.format(self.address), data=json.dumps(data)).json()
 
-class RouterApi:
-  def __init__(self, url, log=True):
-    self.http = HttpRouter(url, log)
+    def delete_version(self, verId):
+        return self.delete(url='{0}/sf/versions/{1}'.format(self.address, verId))
 
-  # Application
-  def get_application_by_name(self, name):
-    return self.http.get(path = 'applications/name/{}/'.format(urllib.parse.quote(name)))
+    # Customer
+    def get_customer_by_name(self, name):
+        return self.get(url='{0}/sf/customers/name/{1}/'.format(self.address, name)).json()
 
-  # Version
-  def get_version_by_build_and_app(self, build, appId):
-    return self.http.get(path = 'versions/buildNumber/{}?applicationId={}'.format(build, appId))
+    def post_customer(self, data):
+        return self.post(url='{0}/sf/customers'.format(self.address), data=json.dumps(data)).json()
 
-  def get_versions_by_app(self, appId):
-    return self.http.get(path = 'versions?applicationId={}'.format(appId))
+    def delete_customer(self, custId):
+        return self.delete(url='{0}/sf/customers/{1}'.format(self.address, custId))
 
-  def post_version(self, data):
-    return self.http.post(path = 'versions', data = data)
+    # Environment
+    def get_environment_by_fqen(self, fqen):
+        return self.get(url='{0}/sf/environments/fqen/{1}/'.format(self.address, fqen)).json()
 
-  def delete_version(self, verId):
-    return self.http.delete(path = 'versions/{}'.format(verId))
+    def get_environment_by_application(self, appId):
+        return self.get(url='{0}/sf/environments/application/{1}/'.format(self.address, appId)).json()
 
-  # Customer
-  def get_customer_by_name(self, name):
-    return self.http.get(path = 'customers/name/{}/'.format(name))
+    def get_environments_by_version(self, versionId):
+        return self.get(url='{0}/sf/environments/version/{1}/'.format(self.address, versionId)).json()
 
-  def post_customer(self, data):
-    return self.http.post(path = 'customers', data = data)
+    def post_environment(self, data):
+        return self.post(url='{0}/sf/environments'.format(self.address), data=json.dumps(data)).json()
 
-  def delete_customer(self, custId):
-    return self.http.delete(path = 'customers/{}'.format(custId))
-  
-  # Environment
-  def get_environment_by_fqen(self, fqen):
-    return self.http.get(path = 'environments/fqen/{}/'.format(fqen))
+    def put_environment(self, data):
+        return self.put(url='{0}/sf/environments'.format(self.address), data=json.dumps(data)).json()
 
-  def get_environment_by_application(self, appId):
-    return self.http.get(path = 'environments/application/{}/'.format(appId))
+    def delete_environment(self, envId):
+        return self.delete(url='{0}/sf/environments/{1}'.format(self.address, envId))
 
-  def get_environments_by_version(self, versionId):
-    return self.http.get(path = 'environments/version/{}/'.format(versionId))
+    # Environment Versions
+    def get_env_versions_by_env_and_app(self, envId, appId):
+        params = {
+            'applicationId': appId,
+            'environmentId': envId
+        }
+        return self.get(url='{0}/sf/envVersions'.format(self.address), params=params).json()
 
-  def post_environment(self, data):
-    return self.http.post(path = 'environments', data = data)
+    def get_env_versions_by_app(self, appId):
+        params = {
+            'applicationId': appId
+        }
+        return self.get(url='{0}/sf/envVersions'.format(self.address), params=params).json()
 
-  def put_environment(self, data):
-    return self.http.put(path = 'environments', data = data)
+    def put_env_version_for_environments(self, build, data):
+        return self.put(url='{0}/sf/envVersions/versionBuildNumber/{1}'.format(self.address, build),
+                        data=json.dumps(data)).json()
 
-  def delete_environment(self, envId):
-    return self.http.delete(path = 'environments/{}'.format(envId))
+    def post_env_version(self, data):
+        return self.post(url='{0}/sf/envVersions'.format(self.address), data=json.dumps(data)).json()
 
-  # Environment Versions
-  def get_envVersions_by_env_and_app(self, envId, appId):
-    params = {
-      'applicationId':appId,
-      'environmentId':envId
-    }
-    return self.http.get(path = 'envVersions', params = params)
+    def put_env_version(self, data):
+        return self.put(url='{0}/sf/envVersions'.format(self.address), data=json.dumps(data)).json()
 
-  def get_envVersions_by_app(self, appId):
-    params = {
-      'applicationId':appId
-    }
-    return self.http.get(path = 'envVersions', params = params)
+    def delete_env_version(self, envVerId):
+        return self.delete(url='{0}/sf/envVersions/{1}'.format(self.address, envVerId))
 
-  def put_envVersion_for_environments(self, build, environments):
-    return self.http.put(path = 'envVersions/versionBuildNumber/{}'.format(build), data = environments)
+    # Environment Versions Resource
+    def get_env_version_resources(self, envVerId):
+        return self.get(url='{0}/sf/envVersions/{1}/resource'.format(self.address, envVerId)).json()
 
-  def post_envVersion(self, data):
-    return self.http.post(path = 'envVersions', data = data)
+    def put_env_version_resources(self, envVerId, name, resource):
+        return self.put(url='{0}/sf/envVersions/{1}/resource/{2}/'.format(self.address, envVerId, name),
+                        data="\"{}\"".format(resource))
 
-  def put_envVersion(self, data):
-    return self.http.put(path = 'envVersions', data = data)
-
-  def delete_envVersion(self, envVerId):
-    return self.http.delete(path = 'envVersions/{}'.format(envVerId))
-
-  # Environment Versions Resource
-  def get_envVersion_resources(self, envVerId):
-    return self.http.get(path = 'envVersions/{}/resource'.format(envVerId))
-    
-  def put_envVersion_resources(self, envVerId, name, resource):
-    return self.http.put_str(path = 'envVersions/{}/resource/{}/'.format(envVerId, name), string = "\"{}\"".format(resource))
-
-  # Cache
-  def clearCache(self):
-    return self.http.delete(path = 'cache/routes')
+    # Cache
+    def clear_cache(self):
+        return self.delete(url='{0}/sf/cache/routes'.format(self.address))

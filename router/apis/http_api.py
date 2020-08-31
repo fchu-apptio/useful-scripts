@@ -1,25 +1,58 @@
-import pprint
+import logging
+import json
 
-class HttpRequest:
-  pp = pprint.PrettyPrinter(indent=2)
-  debug = False
 
-  @staticmethod
-  def call(request, log_action, log_url, log_data={}, log=True, default=None):
-    try:
-      print('{} {}, {}'.format(log_action, log_url, log_data))
-      if HttpRequest.debug and log_action != 'GET':
-        response = { 
-          'debug': True,
-          'id':'8F8CB1FBB4884D99A052D99CF20B030C' 
-          }
-      else:
-        response = request()
-      if log:
-        print("Response: ")
-        HttpRequest.pp.pprint(response)
-        print()
-      return response
-    except Exception as e:
-      print('Failed to {} request to {} with exception: {}'.format(log_action, log_url, str(e)))
-      return default
+class HttpApi:
+    def __init__(self, session, log=True):
+        self.session = session
+        self.log = log
+
+    def get(self, url, params=None):
+        return HttpApi.__log_wrapper(lambda: self.session.get(url, params=params, timeout=10),
+                           "GET", url, params, self.log)
+
+    def post(self, url, data):
+        return HttpApi.__log_wrapper(lambda: self.session.post(url, data=data, headers={
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'cache-control': 'no-cache'
+        }, timeout=3), "POST", url, data, self.log)
+
+    def put(self, url, data):
+        return HttpApi.__log_wrapper(lambda: self.session.put(url, data=data, headers={
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'cache-control': 'no-cache'
+        }, timeout=3), "PUT", url, data, self.log)
+
+    def delete(self, url):
+        return HttpApi.__log_wrapper(lambda: self.session.delete(url, timeout=3), "DELETE", url, None, self.log)
+
+    @staticmethod
+    def __log_wrapper(request, action, url, data, log):
+        logging.info("Sending {0} {1}, {2}".format(action, url, data))
+
+        try:
+            response = request()
+        except Exception as e:
+            print('Failed to {0} request to {1} with exception: {2}'.format(action, url, str(e)))
+            return None
+
+        if log:
+            if response.content:
+                try:
+                    content = json.dumps(response.json(), indent=4, separators=(',', ': '))
+                except json.JSONDecodeError:
+                    content = response.content
+                logging.info("Received Response {0}: {1}".format(response.status_code, content))
+            else:
+                logging.info("Received Response {0}".format(response.status_code))
+        return response
+
+    @staticmethod
+    def healthy(session, address, expected_text, timeout=3, log=True):
+        def is_result_healthy(health_response):
+            return health_response and health_response.status_code == 200 \
+                   and health_response.text and health_response.text == expected_text
+        response = HttpApi.__log_wrapper(lambda: session.get(address, verify=False, timeout=timeout), "GET", address, None, log)
+        return is_result_healthy(response)
