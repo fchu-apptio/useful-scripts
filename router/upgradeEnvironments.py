@@ -3,6 +3,7 @@ from apis.router_api import RouterApi
 import argparse
 import sys
 import requests
+import logging
 
 parser = argparse.ArgumentParser(description='Add BFF Version')
 parser.add_argument('--router', '-r', dest='router', type=RouterArg(),
@@ -17,8 +18,9 @@ parser.add_argument('--old-version', '-o', dest='old', type=str, required=False,
 parser.add_argument('--app-name', '-a', dest='app', type=str, default='Studio Bff',
                     help='Router application to provision to')
 args = parser.parse_args()
-print("Running with args:")
-print(args)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logging.info("Running with args:")
+logging.info(args)
 
 session = requests.session()
 api = RouterApi(args.router, session)
@@ -54,10 +56,10 @@ elif args.old:
 
     environments = map(lambda e: e.get('id'),
                        filter(lambda ev: ev.get('versionBuildNumber') and args.old == ev.get('versionBuildNumber'),
-                              api.get_versions_by_app(application.get('id'))))
+                              api.get_env_versions_by_app(application.get('id'))))
     output = api.put_env_version_for_environments(args.version, list(environments))
 
-print(output)
+logging.info(output)
 
 # Clear cache
 api.clear_cache()
