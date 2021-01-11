@@ -29,6 +29,8 @@ def search_environments(params):
     if params.version:
         environments = filter(lambda e: e.get('versionBuildNumber') and params.version in e.get('versionBuildNumber'),
                               environments)
+    if params.vanity:
+        environments = filter(lambda e: e.get('vanityDomain') and params.vanity in e.get('vanityDomain'), environments)
 
     environments = EnvironmentsHelper.append_version_resource(environments, api)
     if params.custom == 'bad':
@@ -93,6 +95,7 @@ parser.add_argument('--version', '-v', dest='version', type=str, required=False,
                     help="A build version for the application")
 parser.add_argument('--app-name', '-a', dest='app', type=str, default='Studio BFF', required=False,
                     help='Router application to use')
+parser.add_argument('--vanity', '-y', dest='vanity', type=str, required=False, help="Vanity domain to search by")
 args = parser.parse_args()
 
 logging.info("Running with args:")
