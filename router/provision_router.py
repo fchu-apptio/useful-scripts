@@ -12,7 +12,9 @@ parser.add_argument('--router', '-r', dest='router', type=RouterArg(),
                     required=True)
 parser.add_argument('--env', '-e', dest='env', type=str, required=True, help='Environment name to provision')
 parser.add_argument('--customer', '-c', dest='customer', type=str, required=True, help='Customer address to provision')
-parser.add_argument('--bff-version', '-v', dest='version', type=str, required=True,
+parser.add_argument('--version-id', '-i', dest='versionId', type=str, required=False,
+                    help='Id of the version to provision to')
+parser.add_argument('--bff-version', '-v', dest='version', type=str, required=False,
                     help='Tag of the bff version to provision to')
 parser.add_argument('--vanity', '-d', dest='vanity', type=str, required=False,
                     help='vanity domain (just the name without the .apptio.com)')
@@ -33,7 +35,10 @@ if not application or 'id' not in application:
     sys.exit("No Application {}".format(args.app))
 
 # Get the version, fail if not exists
-version = api.get_version_by_build_and_app(args.version, application.get('id'))
+if args.versionId:
+    version = api.get_version_by_id(args.versionId)
+else:
+    version = api.get_version_by_build_and_app(args.version, application.get('id'))
 if not version or 'id' not in version:
     sys.exit("No bff version found for {}".format(args.version))
 

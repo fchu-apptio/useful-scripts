@@ -11,7 +11,9 @@ parser.add_argument('--router', '-r', dest='router', type=RouterArg(),
                     required=True)
 parser.add_argument('--fqen', '-f', dest='fqen', type=str, required=False,
                     help='Fully qualified environment name to upgrade')
-parser.add_argument('--new-version', '-v', dest='version', type=str, required=True,
+parser.add_argument('--version-id', '-i', dest='versionId', type=str, required=False,
+                    help='Id of the version to provision to')
+parser.add_argument('--new-version', '-v', dest='version', type=str, required=False,
                     help='Tag of the bff version to provision to')
 parser.add_argument('--old-version', '-o', dest='old', type=str, required=False,
                     help='Tag of the bff version to provision to')
@@ -33,7 +35,10 @@ application = api.get_application_by_name(args.app)
 if not application or 'id' not in application:
     sys.exit("No Application {}".format(args.app))
 
-version = api.get_version_by_build_and_app(args.version, application.get('id'))
+if args.versionId:
+    version = api.get_version_by_id(args.versionId)
+else:
+    version = api.get_version_by_build_and_app(args.version, application.get('id'))
 if not version or 'id' not in version:
     sys.exit("New version {} is not found".format(args.version))
 

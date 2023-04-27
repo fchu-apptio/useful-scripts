@@ -17,6 +17,9 @@ class RouterApi(HttpApi):
     def get_version_by_build_and_app(self, build, appId):
         return self.get(url='{0}/sf/versions/buildNumber/{1}?applicationId={2}'.format(self.address, build, appId), as_json=True)
 
+    def get_version_by_id(self, id):
+        return self.get(url='{0}/sf/versions/{1}'.format(self.address, id), as_json=True)
+
     def get_versions_by_app(self, appId):
         return self.get(url='{0}/sf/versions?applicationId={1}'.format(self.address, appId), as_json=True)
 

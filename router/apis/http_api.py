@@ -8,7 +8,7 @@ class HttpApi:
         self.log = log
 
     def get(self, url, params=None, as_json=False):
-        response = HttpApi.__log_wrapper(lambda: self.session.get(url, params=params, timeout=10),
+        response = HttpApi.__log_wrapper(lambda: self.session.get(url, params=params, timeout=100),
                            "GET", url, params, self.log)
         return HttpApi.__handle_response(response, as_json)
 

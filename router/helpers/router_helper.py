@@ -7,6 +7,7 @@ class RouterArg(object):
         "us-dev": "http://sui-default-internal.apptio.com:7001",
         "au-prod": "http://studio-service-au-internal.apptio.com:7001",
         "eu-prod": "http://studio-service-eu-internal.apptio.com:7001",
+        "router-integration": "http://router-integration-internal.apptio.com:7001",
         "local": "http://localhost:9550"
     }
 
